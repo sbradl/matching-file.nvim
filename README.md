@@ -11,7 +11,7 @@ If the matching file does not exist you will be asked if it should be created.
 
 ```lua
  {
-    dir = "sbradl/matching-file.nvim",
+    "sbradl/matching-file.nvim",
     config = function()
       require("matching-file").setup()
     end,
