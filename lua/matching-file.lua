@@ -13,6 +13,10 @@ local function open_in_split(target)
 	end
 
 	vim.cmd("vsplit " .. target)
+end
+
+local function create_matching_file(file)
+	open_in_split(file)
 	vim.cmd("write")
 end
 
@@ -89,31 +93,36 @@ M.matchers = {
 	},
 }
 
-M.goto_matching_file = function()
-	local file = vim.api.nvim_buf_get_name(0)
+M.determine_target_file = function(file)
 	local filename = vim.fn.fnamemodify(file, ":t")
 	local target
 
 	for _, matcher in ipairs(M.matchers) do
-		print("checking rule " .. matcher.from .. " for " .. filename)
 		if filename:match(matcher.from) then
 			target = matcher.strategy(file, matcher)
 			break
 		end
 	end
 
+	return target
+end
+
+M.goto_matching_file = function()
+	local file = vim.api.nvim_buf_get_name(0)
+	local target = M.determine_target_file(file)
+
 	if not target then
-		print("No matching file pair rule")
+		print("No matcher found")
 		return
 	end
 
 	if vim.fn.filereadable(target) == 1 then
 		open_in_split(target)
 	else
-		local choice = vim.fn.confirm("Create corresponding file?\n" .. target, "&Yes\nNo", 2)
+		local choice = vim.fn.confirm("Create matching file?\n" .. target, "&Yes\nNo", 2)
 
 		if choice == 1 then
-			open_in_split(target)
+			create_matching_file(target)
 		else
 			print("Aborted")
 		end
