@@ -16,18 +16,88 @@ local function open_in_split(target)
 	vim.cmd("write")
 end
 
-M.matching_file_pairs = {
-	{ from = "%.spec%.ts$", to = ".ts" },
-	{ from = "%.ts$", to = ".spec.ts" },
+local function goto_matching_file_in_same_directory(file, matcher)
+	return file:gsub(matcher.from, matcher.to)
+end
+
+local function find_project_dir(start, projectfilepattern)
+	local dir = start
+
+	while dir do
+		local projectfiles = vim.fs.find(function(name, path)
+			return name:match(projectfilepattern)
+		end, { path = dir, limit = 1, type = "file" })
+		if #projectfiles > 0 then
+			return dir
+		end
+
+		local parent = vim.fs.dirname(dir)
+		if parent == dir then
+			return nil
+		end
+
+		dir = parent
+	end
+end
+
+local function ends_with(string, suffix)
+	return string:sub(-#suffix) == suffix
+end
+
+local function goto_matching_file_in_project(file, matcher)
+	local projectdir = find_project_dir(vim.fs.dirname(file), matcher.projectfilepattern)
+
+	if not projectdir then
+		return
+	end
+
+	local directorystructure = vim.fs.relpath(projectdir, file)
+	local projectsuffix = ""
+	local newprojectsuffix = ""
+	local filesuffix = ""
+	local newfilesuffix = ""
+
+	if ends_with(projectdir, matcher.projectsuffix1) then
+		projectsuffix = matcher.projectsuffix1
+		newprojectsuffix = matcher.projectsuffix2
+		filesuffix = matcher.suffix1
+		newfilesuffix = matcher.suffix2
+	else
+		projectsuffix = matcher.projectsuffix2
+		newprojectsuffix = matcher.projectsuffix1
+		filesuffix = matcher.suffix2
+		newfilesuffix = matcher.suffix1
+	end
+
+	local matchingprojectdir = projectdir:sub(1, #projectdir - #projectsuffix) .. newprojectsuffix
+	local targetfile = vim.fs.joinpath(matchingprojectdir, directorystructure)
+
+	return targetfile:sub(1, #targetfile - #filesuffix) .. newfilesuffix
+end
+
+M.matchers = {
+	{ from = "%.spec%.ts$", to = ".ts", strategy = goto_matching_file_in_same_directory },
+	{ from = "%.ts$", to = ".spec.ts", strategy = goto_matching_file_in_same_directory },
+	{
+		from = "%.cs$",
+		strategy = goto_matching_file_in_project,
+		projectfilepattern = ".*%.csproj$",
+		projectsuffix1 = ".Test",
+		projectsuffix2 = "",
+		suffix1 = "Test.cs",
+		suffix2 = ".cs",
+	},
 }
 
 M.goto_matching_file = function()
 	local file = vim.api.nvim_buf_get_name(0)
+	local filename = vim.fn.fnamemodify(file, ":t")
 	local target
 
-	for _, pair in ipairs(M.matching_file_pairs) do
-		if file:match(pair.from) then
-			target = file:gsub(pair.from, pair.to)
+	for _, matcher in ipairs(M.matchers) do
+		print("checking rule " .. matcher.from .. " for " .. filename)
+		if filename:match(matcher.from) then
+			target = matcher.strategy(file, matcher)
 			break
 		end
 	end
