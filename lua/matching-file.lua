@@ -93,7 +93,7 @@ M.matchers = {
 	},
 }
 
-M.determine_target_file = function(file)
+M._determine_target_file = function(file)
 	local filename = vim.fn.fnamemodify(file, ":t")
 	local target
 
@@ -109,7 +109,7 @@ end
 
 M.goto_matching_file = function()
 	local file = vim.api.nvim_buf_get_name(0)
-	local target = M.determine_target_file(file)
+	local target = M._determine_target_file(file)
 
 	if not target then
 		print("No matcher found")
