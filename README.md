@@ -1,5 +1,7 @@
 # matching-file.nvim
 
+[![Tests](https://github.com/sbradl/matching-file.nvim/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/sbradl/matching-file.nvim/actions/workflows/ci.yml)
+
 This plugin lets you quickly go to a matching file. A matching file can be the corresponding test file.
 Patterns to find a matching file are configurable.
 
@@ -17,4 +19,3 @@ If the matching file does not exist you will be asked if it should be created.
     end,
   },
 ```
-
