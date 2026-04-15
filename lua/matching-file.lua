@@ -24,32 +24,14 @@ local function goto_matching_file_in_same_directory(file, matcher)
 	return file:gsub(matcher.from, matcher.to)
 end
 
-local function find_project_dir(start, projectfilepattern)
-	local dir = start
-
-	while dir do
-		local projectfiles = vim.fs.find(function(name, path)
-			return name:match(projectfilepattern)
-		end, { path = dir, limit = 1, type = "file" })
-		if #projectfiles > 0 then
-			return dir
-		end
-
-		local parent = vim.fs.dirname(dir)
-		if parent == dir then
-			return nil
-		end
-
-		dir = parent
-	end
-end
-
 local function ends_with(string, suffix)
 	return string:sub(-#suffix) == suffix
 end
 
 local function goto_matching_file_in_project(file, matcher)
-	local projectdir = find_project_dir(vim.fs.dirname(file), matcher.projectfilepattern)
+	local projectdir = vim.fs.dirname(vim.fs.find(function(name)
+		return name:match(matcher.projectfilepattern)
+	end, { path = vim.fs.dirname(file), limit = 1, upward = true, type = "file" })[1])
 
 	if not projectdir then
 		return
