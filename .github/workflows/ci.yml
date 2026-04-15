@@ -21,5 +21,5 @@ jobs:
 
       - name: Run Tests
         run: |
-          nvim --headless --noplugin -u scripts/minimal_init.lua \
-            -c "PlenaryBustedDirectory tests/ { minimal_init = './scripts/minimal_init.lua' }"
+          nvim --headless --noplugin -u scripts/minimal_init.vim \
+            -c "PlenaryBustedDirectory tests/ { minimal_init = './scripts/minimal_init.vim' }"
