@@ -111,5 +111,4 @@ M.goto_matching_file = function()
 	end
 end
 
-vim.keymap.set("n", "gm", M.goto_matching_file, { desc = "Go to matching file" })
 return M
