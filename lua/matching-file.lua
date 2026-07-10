@@ -29,9 +29,9 @@ local function ends_with(string, suffix)
 end
 
 local function goto_matching_file_in_project(file, matcher)
-	local projectdir = vim.fs.dirname(vim.fs.find(function(name)
+	local projectdir = vim.fs.root(file, function(name)
 		return name:match(matcher.projectfilepattern)
-	end, { path = vim.fs.dirname(file), limit = 1, upward = true, type = "file" })[1])
+	end)
 
 	if not projectdir then
 		return
