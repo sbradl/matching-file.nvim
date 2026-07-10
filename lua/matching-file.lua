@@ -65,10 +65,11 @@ function M.strategies.project(file, matcher)
 end
 
 ---@type matching-file.Matcher[]
-M.matchers = {
-	{ from = "%.spec%.ts$", to = ".ts", strategy = "same_directory" },
-	{ from = "%.ts$", to = ".spec.ts", strategy = "same_directory" },
+local default_matchers = {
+	{ name = "typescript", from = "%.spec%.ts$", to = ".ts", strategy = "same_directory" },
+	{ name = "typescript", from = "%.ts$", to = ".spec.ts", strategy = "same_directory" },
 	{
+		name = "csharp",
 		from = "%.cs$",
 		strategy = "project",
 		projectfilepattern = ".*%.csproj$",
@@ -78,6 +79,9 @@ M.matchers = {
 		suffix2 = ".cs",
 	},
 }
+
+---@type matching-file.Matcher[]
+M.matchers = default_matchers
 
 ---Resolve a matcher's strategy, which may be a named built-in or a function.
 ---@param strategy matching-file.Strategy|string
@@ -109,14 +113,49 @@ M._determine_target_file = function(file)
 	return target
 end
 
----Configure the plugin. Pass `matchers` to override the built-in list.
+---Resolve the user-supplied opts against the built-in defaults into the final,
+---effective opts. Pure: does not mutate globals or its input. User `matchers`
+---are appended to the built-ins; matchers whose `name` is listed in `disable`
+---are removed.
 ---@param opts? matching-file.Opts
-M.setup = function(opts)
+---@return matching-file.Opts
+M._resolve_opts = function(opts)
 	opts = opts or {}
 
+	local matchers = vim.list_extend({}, default_matchers)
+
 	if opts.matchers then
-		M.matchers = opts.matchers
+		vim.list_extend(matchers, opts.matchers)
 	end
+
+	if opts.disable then
+		local known = {}
+		for _, matcher in ipairs(matchers) do
+			known[matcher.name] = true
+		end
+
+		local disabled = {}
+		for _, name in ipairs(opts.disable) do
+			if not known[name] then
+				error(string.format("matching-file: cannot disable unknown matcher %q", name), 0)
+			end
+
+			disabled[name] = true
+		end
+
+		matchers = vim.tbl_filter(function(matcher)
+			return not disabled[matcher.name]
+		end, matchers)
+	end
+
+	return { matchers = matchers }
+end
+
+---Configure the plugin. All matchers are enabled by default; pass `matchers` to
+---add to the built-in list, or `disable` with matcher names to turn off.
+---@param opts? matching-file.Opts
+M.setup = function(opts)
+	M.matchers = M._resolve_opts(opts).matchers
 end
 
 M.goto_matching_file = function()

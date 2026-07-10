@@ -7,6 +7,7 @@
 ---A single matching rule. The first matcher whose `from` pattern matches the
 ---filename (`:t`, not the full path) wins.
 ---@class matching-file.Matcher
+---@field name string Name used to enable/disable the matcher via `setup`. Several matchers may share a name to be toggled together.
 ---@field from string Lua pattern matched against the filename.
 ---@field strategy matching-file.Strategy|"same_directory"|"project" Strategy function, or the name of a built-in one in `M.strategies`.
 ---
@@ -22,4 +23,5 @@
 
 ---Options accepted by `require("matching-file").setup`.
 ---@class matching-file.Opts
----@field matchers? matching-file.Matcher[] Replaces the built-in matcher list when provided.
+---@field matchers? matching-file.Matcher[] Added to the built-in matcher list when provided.
+---@field disable? string[] Names of matchers to disable. All matchers are enabled by default.
