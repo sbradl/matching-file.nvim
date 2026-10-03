@@ -68,6 +68,8 @@ end
 local default_matchers = {
 	{ name = "typescript", from = "%.spec%.ts$", to = ".ts", strategy = "same_directory" },
 	{ name = "typescript", from = "%.ts$", to = ".spec.ts", strategy = "same_directory" },
+	{ name = "go", from = "_test%.go$", to = ".go", strategy = "same_directory" },
+	{ name = "go", from = "%.go$", to = "_test.go", strategy = "same_directory" },
 	{
 		name = "csharp",
 		from = "%.cs$",

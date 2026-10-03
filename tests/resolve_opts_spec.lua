@@ -10,7 +10,7 @@ end
 describe("matching-file.resolve_opts", function()
 	describe("given no opts", function()
 		it("should return all built-in matchers", function()
-			assert.are.same({ "typescript", "typescript", "csharp" }, matcher_names(resolve_opts()))
+			assert.are.same({ "typescript", "typescript", "go", "go", "csharp" }, matcher_names(resolve_opts()))
 		end)
 
 		it("should treat nil and empty opts the same", function()
@@ -24,7 +24,7 @@ describe("matching-file.resolve_opts", function()
 				matchers = { { name = "python", from = "%.py$", to = "_test.py", strategy = "same_directory" } },
 			})
 
-			assert.are.same({ "typescript", "typescript", "csharp", "python" }, matcher_names(opts))
+			assert.are.same({ "typescript", "typescript", "go", "go", "csharp", "python" }, matcher_names(opts))
 		end)
 
 		it("should not mutate the built-in defaults across calls", function()
@@ -32,7 +32,7 @@ describe("matching-file.resolve_opts", function()
 				matchers = { { name = "python", from = "%.py$", to = "_test.py", strategy = "same_directory" } },
 			})
 
-			assert.are.same({ "typescript", "typescript", "csharp" }, matcher_names(resolve_opts()))
+			assert.are.same({ "typescript", "typescript", "go", "go", "csharp" }, matcher_names(resolve_opts()))
 		end)
 
 		it("should not mutate the input matchers list", function()
@@ -47,19 +47,19 @@ describe("matching-file.resolve_opts", function()
 		it("should remove every matcher with a disabled name", function()
 			local opts = resolve_opts({ disable = { "typescript" } })
 
-			assert.are.same({ "csharp" }, matcher_names(opts))
+			assert.are.same({ "go", "go", "csharp" }, matcher_names(opts))
 		end)
 
 		it("should support disabling multiple names", function()
 			local opts = resolve_opts({ disable = { "typescript", "csharp" } })
 
-			assert.are.same({}, matcher_names(opts))
+			assert.are.same({ "go", "go" }, matcher_names(opts))
 		end)
 
 		it("should ignore duplicate names", function()
 			local opts = resolve_opts({ disable = { "csharp", "csharp" } })
 
-			assert.are.same({ "typescript", "typescript" }, matcher_names(opts))
+			assert.are.same({ "typescript", "typescript", "go", "go" }, matcher_names(opts))
 		end)
 
 		it("should error on an unknown name", function()
@@ -74,7 +74,7 @@ describe("matching-file.resolve_opts", function()
 				disable = { "python" },
 			})
 
-			assert.are.same({ "typescript", "typescript", "csharp" }, matcher_names(opts))
+			assert.are.same({ "typescript", "typescript", "go", "go", "csharp" }, matcher_names(opts))
 		end)
 	end)
 end)
